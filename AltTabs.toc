@@ -1,0 +1,12 @@
+## Interface: 40000
+## Title: AltTabs
+## Notes: Adds spellbook and character-style tabs to the TradeSkillFrame for easy selection of alt trade skills
+## Author: Lachnoir, tardmrr
+## Version: 0.1
+## X-Category: Tradeskill
+## Dependencies:
+## LoadOnDemand: 1
+## LoadWith: Blizzard_TradeSkillUI
+## SavedVariables: AltTabsDB
+
+AltTabs.lua
