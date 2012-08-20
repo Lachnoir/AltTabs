@@ -1,4 +1,3 @@
--- todo: rework texture used for spacer...
 -- todo: support 3rd party tradeskill frames; eg. Skillet ATSW etc.
 -- todo: support removal of toons from the DB... ctrl click on the tab perhaps for a popup menu... TBD
 -- todo: support refresh of trades (for current player) in the DB... ctrl click on the tab perhaps for a popup menu... TBD
@@ -36,18 +35,6 @@ local tradeSkillHelpers = {
 }
 -- take a reference to the number of tradeskill helpers, before the table is localized...
 local numTradeSkillHelpers = #tradeSkillHelpers
-
-function AltTabs:OnEvent( event, name, ... )
-	if event == "ADDON_LOADED" and name == "AltTabs" then
-		self:Initialize()
-	end
-end
-
-AltTabs:SetScript( "OnEvent", AltTabs.OnEvent )
-AltTabs:RegisterEvent("ADDON_LOADED")
--- since the addon is loaded with the Blizzard TradeskillUI, we miss the first show event...
--- so we need to respond to the following event to catchup
-AltTabs:RegisterEvent( "CURRENT_SPELL_CAST_CHANGED" )
 
 -------------------------------------------------------------------------------
 --
@@ -310,10 +297,14 @@ function AltTabs:LocalizeTradeSkillHelpers()
 	end
 end
 
+
 function AltTabs:Initialize()
 	if self.initialized then
 		return
-	end 
+	elseif InCombatLockdown() then
+		self:RegisterEvent( "PLAYER_REGEN_ENABLED" )
+		return
+	end
 
 	local realm = GetRealmName()
 	local player = GetUnitName("player")
@@ -375,12 +366,7 @@ function AltTabs:CreateCharacterTab( character, index, parent )
     button:SetScript( "OnEnter", OnCharacterEnter )
 	button:SetScript( "OnClick", OnCharacterClick )
     button:SetScript( "OnLeave", OnCharacterLeave )
-
-	button:RegisterEvent( "TRADE_SKILL_SHOW" )
-	-- since the addon is loaded with the Blizzard TradeskillUI, we miss the first  show event...
-	-- so we need to respond to the following event to catchup
-	button:RegisterEvent( "CURRENT_SPELL_CAST_CHANGED" )
-
+	button:RegisterEvent( "TRADE_SKILL_UPDATE" )
 	button:Show()
 
 	return button
@@ -429,11 +415,7 @@ function AltTabs:CreateClickStopper( parent )
     f:SetScript( "OnLeave", OnTradeLeave )
 
 	-- listen for update events
-	f:RegisterEvent( "TRADE_SKILL_SHOW" )
---	f:RegisterEvent( "TRADE_SKILL_UPDATE" )
-	-- since the addon is loaded with the Blizzard TradeskillUI, we miss the first  update event...
-	-- so we need to respond to the following event to catchup
-	f:RegisterEvent( "CURRENT_SPELL_CAST_CHANGED" )
+	f:RegisterEvent( "TRADE_SKILL_UPDATE" )
 
 	return f
 end
@@ -551,3 +533,19 @@ function AltTabs:RemoveTrade( character, trade )
 
 	return bRetVal
 end
+
+function AltTabs:OnEvent( event, name, ... )
+	if event == "ADDON_LOADED" and name == "AltTabs" then
+		self:UnregisterEvent("ADDON_LOADED")
+		self:Initialize()
+	elseif event == "PLAYER_REGEN_ENABLED" then
+		self:UnregisterEvent("PLAYER_REGEN_ENABLED")
+		self:Initialize()
+	end
+end
+
+AltTabs:SetScript( "OnEvent", AltTabs.OnEvent )
+AltTabs:RegisterEvent("ADDON_LOADED")
+
+
+
