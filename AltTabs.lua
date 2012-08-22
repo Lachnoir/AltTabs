@@ -99,8 +99,8 @@ local function OnCharacterClick( self )
 			local hyperlink = AltTabsDB[GetRealmName()][self.character][tradeName]
 
 			if tab.spellBookID then
-				if not IsCurrentSpell(tab.spellBookID,"spell") then
-					CastSpell(tab.spellBookID, "spell")
+				if not IsCurrentSpell(tab.spellBookID,BOOKTYPE_SPELL) then
+					CastSpell(tab.spellBookID, BOOKTYPE_SPELL)
 				end
 			else
 				if hyperlink then
@@ -195,8 +195,8 @@ local function OnTradeClick( self )
 		end
 	else
 		if parent.spellBookID then
-			if not IsCurrentSpell( parent.spellBookID, "spell" ) then
-				CastSpell( parent.spellBookID, "spell" )
+			if not IsCurrentSpell( parent.spellBookID, BOOKTYPE_SPELL ) then
+				CastSpell( parent.spellBookID, BOOKTYPE_SPELL )
 			end
 		else
 			if hyperlink then
@@ -233,7 +233,7 @@ local function UpdateTradeSelection( self, event, ... )
 	end
 
 	if parent.spellBookID then
-		if IsCurrentSpell(parent.spellBookID,"spell") then
+		if IsCurrentSpell(parent.spellBookID,BOOKTYPE_SPELL) then
 			UpdateHyperlink( GetRealmName(), parent.character, parent.trade, GetTradeSkillListLink() )
 			parent:SetChecked(true)
 		else
@@ -259,7 +259,7 @@ local function UpdateTradeHelper( self )
 	end
 
 	-- clear the check on the helper tabs when they are done casting...
-	if not IsCurrentSpell(self.spellBookID,"spell") then
+	if not IsCurrentSpell(self.spellBookID,BOOKTYPE_SPELL) then
 		self:SetChecked(false)
 	end
 end
@@ -381,10 +381,17 @@ function AltTabs:InitTradeTabs( realm, player, frame )
 
 		if character == player then
 			-- look though the player's spellbook for the associated spell book ids...
-			for i=1,MAX_SPELLS do
-				local spellName = GetSpellBookItemName(i,"spell")
-				if tradeSkills[spellName] or tradeSkillHelpers[spellName] then
-					tabs[spellName] = self:CreateTradeTab( character, spellName, i, frame )
+			--    N.B. use the index from GetProfessions() as the tab index for GetSpellTabInfo()
+			for _,t in pairs({GetProfessions()}) do
+				if t then
+					local name, texture, offset, numSpells, isGuild = GetSpellTabInfo(t)
+					for s = offset + 1, offset + numSpells do
+						local spellName, subSpellName = GetSpellBookItemName(s, BOOKTYPE_SPELL)
+						-- filter out only those trade skill we are interested in...
+						if tradeSkills[spellName] or tradeSkillHelpers[spellName] then
+							tabs[spellName] = self:CreateTradeTab( character, spellName, s, frame )
+						end
+					end
 				end
 			end
 		else
@@ -491,8 +498,8 @@ function AltTabs:SelectDefaultTrade( character )
 
 			if tab then
 				if tab.spellBookID then
-					if not IsCurrentSpell(tab.spellBookID,"spell") then
-						CastSpell(tab.spellBookID, "spell")
+					if not IsCurrentSpell(tab.spellBookID,BOOKTYPE_SPELL) then
+						CastSpell(tab.spellBookID, BOOKTYPE_SPELL)
 					end
 				else
 					local hyperlink = AltTabsDB[GetRealmName()][character][tradeName]

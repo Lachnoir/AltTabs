@@ -1,4 +1,4 @@
-## Interface: 40300
+## Interface: 50400
 ## Title: AltTabs
 ## Notes: Adds spellbook and character-style tabs to the TradeSkillFrame for easy selection of alt trade skills
 ## Author: Lachnoir, tardmrr
